@@ -13,7 +13,7 @@
 The project primarily focuses on template metaprogramming.
 
 Contains multiple tools.
-  - This project is primarily for learning purposes; everyone is welcome to RP.
+  - This project is primarily for learning purposes; everyone is welcome to PR.
 
 ## Project Update
 

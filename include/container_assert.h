@@ -78,4 +78,15 @@ namespace lib
 			"error : T must be a container type with empty() method."
 			);
 	}
+	//--------------------------------
+	//Check if it is std::string
+	template <typename T>
+	constexpr void assert_is_string(T&&)
+	{
+		static_assert(
+			std::is_same_v<std::remove_cvref_t<T>,std::string> ||
+			std::is_same_v<std::remove_cvref_t<T>,std::string_view> ,
+			"error : T must be of type string & string_view. "
+			);
+	}
 }

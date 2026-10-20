@@ -6,7 +6,8 @@
 
 #include <type_traits>
 #include <utility>
-
+#include <string>
+#include <string_view>
 namespace lib
 {
 	//=========================================
@@ -51,10 +52,10 @@ namespace lib
 	template <typename T>
 	struct is_container : std::integral_constant<bool,
 		has_value_type<T>::value    &&
-		  has_iterator<T>::value    &&
-		     has_begin<T>::value    &&
-		       has_end<T>::value    &&
-		      has_size<T>::value>   {};
+		has_iterator  <T>::value    &&
+		has_begin     <T>::value    &&
+	    has_end       <T>::value    &&
+		has_size      <T>::value>   {};
 
 	template <typename T>
 	constexpr bool is_container_v = is_container<T>::value;
@@ -78,19 +79,19 @@ namespace lib
 			"error : T must be a container type with empty() method."
 			);
 	}
-
 	//--------------------------------
-	//Check if it is string
+	//Check if it is std::string
 	template <typename T>
 	constexpr void assert_is_string(T&&)
 	{
 		static_assert(
-			std::is_same_v<std::remove_cvref_t<T>,std::string> ||
+			std::is_same_v<std::remove_cvref_t<T>,std::string>       ||
 			std::is_same_v<std::remove_cvref_t<T>,std::string_view> ||
-			std::is_same_v<std::remove_cvref_t<T>, std::wstring>  ||
+			std::is_same_v<std::remove_cvref_t<T>, std::wstring>   ||
 			std::is_same_v<std::remove_cvref_t<T>, std::u16string> ||
 			std::is_same_v<std::remove_cvref_t<T>, std::u32string>,
 			"error : T must be of type string & string_view...etc "
 			);
-	}
+	}//----------------------------
 }
+//10

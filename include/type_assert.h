@@ -223,4 +223,13 @@ namespace lib
 			std::is_trivial_v<std::decay_t<T>>,
 			"error : T must be a trivial type. ");
 	}//
+	//-------------------------------------------
+	//Compile-time check for function
+	template <typename T>
+	constexpr void assert_is_function(T &&)
+	{
+		static_assert(
+			std::is_function_v<std::remove_reference_t<T>>,
+			"error : T must be a function type. ");
+	}
 }

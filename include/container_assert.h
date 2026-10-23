@@ -1,3 +1,4 @@
+
 //-@Main155
 #pragma once
 
@@ -8,6 +9,12 @@
 #include <utility>
 #include <string>
 #include <string_view>
+#include <array>
+#include <concepts>
+#include <vector>
+#include <list>
+#include <map>
+
 namespace lib
 {
 	//=========================================
@@ -46,6 +53,38 @@ namespace lib
 	struct has_empty : std::false_type {};
 	template <typename T>
 	struct has_empty<T, std::void_t<decltype(std::declval<T&>().empty())>> : std::true_type {};
+	//------------------------------------
+	// Check if it is std::array
+	template <typename T>
+	struct is_std_array : std::false_type {};
+	template <typename T , std::size_t N>
+	struct  is_std_array <std::array<T , N >> : std::true_type {};
+	template <typename T>
+	concept std_array_concept = is_std_array <T>::value;
+	//------------------------------------
+	// Check if it is std::vector
+	template <typename T>
+	struct is_std_vector : std::false_type {};
+	template <typename T,typename U>
+	struct is_std_vector <std::vector<T , U>> : std::true_type {};
+	template <typename T>
+	concept std_vector_concept = is_std_vector <T>::value ;
+	//------------------------------------
+	// Check if it is std::list
+	template <typename T>
+	struct  is_std_list : std::false_type {};
+	template <typename T, typename U>
+	struct is_std_list <std::list<T,U>> : std::true_type {};
+	template <typename T>
+	concept std_list_concept = is_std_list<T>::value;
+	//------------------------------------
+	// Check if it is std::map
+	template <typename T>
+	struct is_std_map : std::false_type {};
+	template <typename Key, typename T, typename... Rest>
+	struct is_std_map<std::map<Key, T, Rest...>> : std::true_type {};
+	template <typename T>
+	concept std_map_concept = is_std_map<T>::value;
 	//=========================================
 	
 	//Determine whether it is a container.
@@ -85,13 +124,53 @@ namespace lib
 	constexpr void assert_is_string(T&&)
 	{
 		static_assert(
-			std::is_same_v<std::remove_cvref_t<T>,std::string>       ||
-			std::is_same_v<std::remove_cvref_t<T>,std::string_view> ||
-			std::is_same_v<std::remove_cvref_t<T>, std::wstring>   ||
+			std::is_same_v<std::remove_cvref_t<T>, std::string> ||
+			std::is_same_v<std::remove_cvref_t<T>, std::string_view> ||
+			std::is_same_v<std::remove_cvref_t<T>, std::wstring> ||
 			std::is_same_v<std::remove_cvref_t<T>, std::u16string> ||
 			std::is_same_v<std::remove_cvref_t<T>, std::u32string>,
 			"error : T must be of type string & string_view...etc "
 			);
-	}//----------------------------
+	}
+	//-------------------------------
+	//Check if it is std::array
+	template <typename T>
+	constexpr void assert_is_std_array(T&&)
+	{
+		static_assert(
+			std_array_concept<std::remove_cvref_t<T>>,
+			"error : T must be of array container. "
+			);
+	}
+	//-------------------------------
+	//Check if it is std::vector
+	template <typename T>
+	constexpr void assert_is_std_vector(T&&)
+	{
+		static_assert(
+			std_vector_concept<std::remove_cvref_t<T>>,
+			"error : T must be of vector container. "
+			);
+	}
+	//--------------------------------
+	//Check if it is std::list
+	template <typename T>
+	constexpr void assert_is_std_list(T&&)
+	{
+		static_assert(
+			std_list_concept<std::remove_cvref_t<T>>,
+			"error : T must be of list container. "
+			);
+	}
+	//--------------------------------
+	//Check if it is std::map
+	template <typename T>
+	constexpr void assert_is_std_map(T&&)
+	{
+		static_assert(
+			std_map_concept<std::remove_cvref_t<T>>,
+			"error : T must be of map container"
+			);
+	}
 }
-//10
+//23

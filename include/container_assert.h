@@ -14,6 +14,9 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <unordered_map>
+#include <set>
+#include <queue>
 
 namespace lib
 {
@@ -65,8 +68,8 @@ namespace lib
 	// Check if it is std::vector
 	template <typename T>
 	struct is_std_vector : std::false_type {};
-	template <typename T,typename U>
-	struct is_std_vector <std::vector<T , U>> : std::true_type {};
+	template <typename T,typename... U>
+	struct is_std_vector <std::vector<T , U...>> : std::true_type {};
 	template <typename T>
 	concept std_vector_concept = is_std_vector <T>::value ;
 	//------------------------------------
@@ -85,6 +88,30 @@ namespace lib
 	struct is_std_map<std::map<Key, T, Rest...>> : std::true_type {};
 	template <typename T>
 	concept std_map_concept = is_std_map<T>::value;
+	//------------------------------------
+	// Check if it is std::unordered_map
+	template <typename T>
+	struct is_std_unordered : std::false_type {};
+	template <typename T,typename U,typename... Rest>
+	struct is_std_unordered<std::unordered_map<T,U, Rest...>> : std::true_type {};
+	template <typename T>
+	concept std_unordered_concept = is_std_unordered<T>::value;
+	//-----------------------------------
+	//Check if it is std::set
+	template <typename T>
+	struct is_std_set : std::false_type {};
+	template <typename T, typename... U>
+	struct is_std_set<std::set<T, U...>> : std::true_type {};
+	template <typename T>
+	concept std_set_concept = is_std_set<T>::value;
+	//-----------------------------------
+	//Check if it is std::queue
+	template <typename T>
+	struct is_std_queue : std::false_type {};
+	template <typename T,typename... U>
+	struct is_std_queue<std::queue<T,U...>> : std::true_type {};
+	template <typename T>
+	concept std_queue_concept = is_std_queue<T>::value;
 	//=========================================
 	
 	//Determine whether it is a container.
@@ -94,7 +121,8 @@ namespace lib
 		has_iterator  <T>::value    &&
 		has_begin     <T>::value    &&
 	    has_end       <T>::value    &&
-		has_size      <T>::value>   {};
+		(has_size<T>::value || has_empty<T>::value)>
+	{};
 
 	template <typename T>
 	constexpr bool is_container_v = is_container<T>::value;
@@ -172,5 +200,35 @@ namespace lib
 			"error : T must be of map container"
 			);
 	}
+	//--------------------------------
+	//Check if it is std::unordered_map
+	template <typename T>
+	constexpr void assert_is_std_unordered_map(T&&)
+	{
+		static_assert (
+			std_unordered_concept<std::remove_cvref_t<T>>,
+			"error : T must be of unordered_map container"
+			);
+	}
+	//--------------------------------
+	//Check if it is std::set
+	template <typename T>
+	constexpr void assert_is_std_set(T&&)
+	{
+		static_assert(
+			std_set_concept<std::remove_cvref_t<T>>,
+			"error : T must be of set container"
+			);
+	}
+	//---------------------------------
+	//Check if it is std::queue
+	template <typename T>
+	constexpr void assert_is_std_queue(T&&)
+	{
+		static_assert (
+			std_queue_concept<std::remove_cvref_t<T>>,
+			"error : T must be of queue container"
+			);
+	}
 }
-//23
+//32

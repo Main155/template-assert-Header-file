@@ -17,6 +17,7 @@
 #include <unordered_map>
 #include <set>
 #include <queue>
+#include <deque>
 
 namespace lib
 {
@@ -112,6 +113,14 @@ namespace lib
 	struct is_std_queue<std::queue<T,U...>> : std::true_type {};
 	template <typename T>
 	concept std_queue_concept = is_std_queue<T>::value;
+	//-----------------------------------
+	//Check if it is std::deque
+	template <typename T>
+	struct is_std_deque : std::false_type {};
+	template <typename T,typename... U>
+	struct is_std_deque<std::deque<T,U...>> : std::true_type {};
+	template<typename T>
+	concept std_deque_concept = is_std_deque<T>::value;
 	//=========================================
 	
 	//Determine whether it is a container.
@@ -230,5 +239,15 @@ namespace lib
 			"error : T must be of queue container"
 			);
 	}
+	//----------------------------------
+	//Check if it is std::deque
+	template <typename T>
+	constexpr void assert_is_std_deque(T&&)
+	{
+		static_assert(
+			std_deque_concept<std::remove_cvref_t<T>>,
+			"error : T must be of deque container"
+			);
+	}
 }
-//32
+//35

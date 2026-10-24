@@ -259,7 +259,7 @@ namespace lib
 	//------------------------------------------
 	//Compile - time check for whether it is an unsigned type
 	template <typename T>
-	constexpr void assert_is_unsignd(T&& t)
+	constexpr void assert_is_unsigned(T&& t)
 	{
 		static_assert(
 			std::is_unsigned_v<std::decay_t<T>>,

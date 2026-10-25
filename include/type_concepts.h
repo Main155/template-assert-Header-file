@@ -9,11 +9,11 @@ namespace lib
 	//======================================
 	//Constraint to be an integer
 	template <typename T>
-	concept Integral = std::is_integral_v<std::remove_cvref_t<T>>;
+	concept Integral = std::is_integral_v<std::decay_t<T>>;
 	//--------------------------------------
 	//Constraints are floating-point
 	template <typename T>
-	concept FloatingPoint = std::is_floating_point_v<std::remove_cvref_t<T>>;
+	concept FloatingPoint = std::is_floating_point_v<std::decay_t<T>>;
 	//--------------------------------------
 	//The constraint is character
 	template <typename T>
@@ -25,7 +25,8 @@ namespace lib
 	//--------------------------------------
 	//Restricted to pointers
 	template <typename T>
-	concept Pointer = std::is_pointer_v<std::remove_cvref_t<T>>;
+	concept Pointer = std::is_pointer_v<std::decay_t<T>> && 
+		!std::is_array_v<std::remove_reference_t<T>>;
 	//--------------------------------------
 	//The constraint is is lvalue reference
 	template <typename T>
@@ -33,19 +34,24 @@ namespace lib
 	//--------------------------------------
 	//Constraint is an unsigned type
 	template <typename T>
-	concept Unsigned = std::is_unsigned_v<std::remove_cvref_t<T>>;
+	concept Unsigned = std::is_unsigned_v<std::decay_t<T>>;
 	//--------------------------------------
 	//Constraints are signed
 	template <typename T>
-	concept Signed = std::is_signed_v<std::remove_cvref_t<T>>;
+	concept Signed = std::is_signed_v<std::decay_t<T>>;
 	//--------------------------------------
 	//Constraint is an arithmetic type
 	template <typename T>
-	concept Arithmetic = std::is_arithmetic_v<std::remove_cvref_t<T>>;
+	concept Arithmetic = std::is_arithmetic_v<std::decay_t<T>>;
 	//--------------------------------------
 	// The constraint is a function 
 	template <typename T>
-	concept Function = std::is_function_v<std::remove_reference_t<T>>;
+	concept Function = std::is_function_v<std::remove_cvref_t<T>>;
+	//--------------------------------------
+	// Constraint is an array type
+	template <typename T>
+	concept Array = std::is_array_v<std::remove_cvref_t<T>>;
+	
 	//======================================
 	//======================================
 	//True if it is an integer
@@ -83,5 +89,9 @@ namespace lib
 	//The function returns true
 	template <Function T>
 	constexpr bool is_function_concept(T&& t) { return true; }
-
+	//--------------------------------------
+	//The array returns true
+	template<Array T>
+	constexpr bool is_array_concept(T&& t) { return true; }
 }
+//20

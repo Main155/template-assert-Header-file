@@ -11,7 +11,7 @@ namespace lib
 {
 	//Compile-time check whether data is an integer.
 	template <typename T>
-	constexpr void assert_is_integer(T&&t)
+	constexpr void assert_is_integer(T&&t) noexcept
 	{
 		static_assert(
 			std::is_integral_v<std::decay_t<T>>,

@@ -1,3 +1,4 @@
+
 //-@Main155 
 #pragma once
 
@@ -239,7 +240,7 @@ namespace lib
 	//-------------------------------------------
 	//Compile-time check for void
 	template <typename T>
-	constexpr void assert_is_void(T&&t)
+	constexpr void assert_is_void()
 	{
 		static_assert(
 			std::is_void_v<std::decay_t<T>>,
@@ -266,5 +267,12 @@ namespace lib
 			"error : T must be a unsignd type. "
 			);
 	}
+	//Compile - time check for whether it is an sizeof
+	template <typename T, std::size_t ExpectedSize>
+	constexpr void assert_sizeof(T&&) noexcept
+	{
+		static_assert(sizeof(std::decay_t<T>) == ExpectedSize,
+			"error : sizeof(T) does not match expected size. ");
+	}
 }
-// 27
+// 28

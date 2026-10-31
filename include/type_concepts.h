@@ -51,6 +51,10 @@ namespace lib
 	// Constraint is an array type
 	template <typename T>
 	concept Array = std::is_array_v<std::remove_cvref_t<T>>;
+	//--------------------------------------
+	//	Constraint is an number
+	template <typename T>
+	concept Number = std::integral<T> || std::floating_point<T>;
 	
 	//======================================
 	//======================================
@@ -93,5 +97,9 @@ namespace lib
 	//The array returns true
 	template<Array T>
 	constexpr bool is_array_concept(T&& t) { return true; }
+	//---------------------------------------
+	//The number returns true
+	template <typename T>
+	constexpr bool is_number_concept(T&& t) { return true; }
 }
-//20
+//22

@@ -1,3 +1,4 @@
+
 //-@Main155
 #pragma once
 
@@ -55,7 +56,11 @@ namespace lib
 	//	Constraint is an number
 	template <typename T>
 	concept Number = std::integral<T> || std::floating_point<T>;
-	
+	//--------------------------------------
+	//Constraint is an unbounded array
+	template <typename T>
+	concept UnboundedArray = std::is_array_v<std::remove_cvref_t<T>>;
+
 	//======================================
 	//======================================
 	//True if it is an integer
@@ -99,7 +104,11 @@ namespace lib
 	constexpr bool is_array_concept(T&& t) { return true; }
 	//---------------------------------------
 	//The number returns true
-	template <typename T>
+	template <Number T>
 	constexpr bool is_number_concept(T&& t) { return true; }
+	//---------------------------------------
+	//The unbounded array returns true
+	template <UnboundedArray T>
+	constexpr bool is_unbounded_array_concept(T&& t) { return true; }
 }
-//22
+//24

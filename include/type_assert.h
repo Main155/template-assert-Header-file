@@ -167,7 +167,7 @@ namespace lib
 	//------------------------------------------
 	//Compile-time check for whether it is a bounded array type.
 	template <typename T>
-	constexpr void assert_is_bounded_array(T&&t) 
+	constexpr void assert_is_bounded_array( T&&t) 
 	{
 		static_assert(
 			std::is_bounded_array_v<std::remove_reference_t<T>>,
@@ -244,8 +244,7 @@ namespace lib
 	{
 		static_assert(
 			std::is_void_v<std::decay_t<T>>,
-			" error : T must be a void type. "
-			);
+			" error : T must be a void type. ");
 	}
 	//-------------------------------------------
 	//Compile-time check for signed type

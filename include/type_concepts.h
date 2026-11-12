@@ -55,7 +55,7 @@ namespace lib
 	//--------------------------------------
 	//	Constraint is an number
 	template <typename T>
-	concept Number = std::integral<T> || std::floating_point<T>;
+	concept Number = FloatingPoint<T> || Integral<T> ;
 	//--------------------------------------
 	//Constraint is an unbounded array
 	template <typename T>

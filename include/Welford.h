@@ -52,7 +52,7 @@ namespace math
 			check(M2);
 			return (count > 1) ? M2 / (count - 1) : 0.0 ;
 		}
-		long double sample_Result()
+		long long sample_Result()
 		{  return count; }  //return sample
 	};
 	

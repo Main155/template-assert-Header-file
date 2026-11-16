@@ -1,3 +1,4 @@
+/* @Main155 */
 #pragma once
 
 #include <vector>
@@ -6,7 +7,6 @@
 #include <atomic>
 #include <condition_variable>
 #include "Welford.h"
-#include <functional>
 #include <concepts>
 #include <type_traits>
 #include <iostream>

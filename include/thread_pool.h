@@ -1,4 +1,6 @@
-/* @Main155 */
+/*
+   @Main155 
+*/
 #pragma once
 
 #include <vector>
@@ -10,77 +12,116 @@
 #include <concepts>
 #include <type_traits>
 #include <iostream>
-#include <algorithm>
 #include <mutex>
+#include <algorithm>
 
 template <typename T>
-concept number = std::is_floating_point_v<T> || std::is_integral_v<T>; //Must be a number(必须为数字)
+concept number = std::is_floating_point_v<T> || std::is_integral_v<T>; 
+/*Must be a number(必须为数字)*/
 
 namespace thread
-{
-	template <typename T>
-	class pool
+{	
+	template<number T>
+	class pool 
 	{
 		struct result
-		{
+		{  //Result
 			long double variance;
 			long double mean;
 			long long count;
 		};
-		std::vector<std::thread> work;   //Group
-		std::queue<std::vector<T>> run;
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool stop{ false };
-
-		std::vector<result> Result_return;
-		std::atomic<size_t> count{ 0 };
-		std::atomic<size_t> th{ 0 };
+		/* Processing center data */
+		std::vector<std::thread> work;    //run thread
+		std::queue<std::vector<T>> run; //Group -> pool_work
+		std::condition_variable cv;     //Notice
+		std::mutex mtx; //lock()
+		std::atomic<bool> stop{ false };/* * Condition * */
+		//-------------------------
+	    /* Result returned ( wait() function ) */
+		std::vector<result> Result_return; //Return result
+		//-----------------------
+		/*  compare */
+		std::atomic<size_t> count{ 0 }; // count ->pool_work() -> slot (Processed quantity)
+		std::atomic<size_t> completed{ 0 };  //execution count
+		std::atomic<size_t> th{ 0 };         //thread count
+		/* ============== */
 		void pool_work()
-		{
+		{ /* Main function */
 			for (;;)
-			{
+			{	 
 				std::vector<T> task;
 				{
 					std::unique_lock<std::mutex> lock(mtx);
-					cv.wait(lock, [&] { return stop || !run.empty(); });
-					if (stop && run.empty()) return;
+					cv.wait(lock, [&] { return stop || !run.empty(); }); 
+					if (stop && run.empty()) return;  //cheak
+                    //The data is handed over to the task.(数据交给task)
 					task = std::move(run.front());
-					run.pop();
+					run.pop();           //delete
+				}//Increment a set of counters by 1. (运行一组count加1)
+				size_t slot = count.fetch_add(1, std::memory_order_seq_cst);
+				/* center -> Welforf.h* **/
+				try
+				{/* Capture exception data. -> Welforf.h**  */
+					math::data get;  //Weiford.h 
+					for (size_t it = 0; it < task.size();++it)
+					{
+						get.update(task[it]);  //update data
+					}
+					Result_return[slot] =    //Write result （写入结果）
+					{ get.fluc_Result(), get.diff_Result(), get.sample_Result() };
 				}
-				math::data get;
-				for (size_t it = 0; it < task.size();++it)
-				{
-					get.update(task[it]);
+				catch (std::runtime_error& e)
+				{  /*Error handling *** */
+					Result_return[slot] = { NAN, NAN, 0 };  //Error logging
+					std::cerr << "Worker error at slot " << slot << ": " << e.what() << '\n'; //Print error
 				}
-				size_t slot = count.fetch_add(1);
-				Result_return[slot] = { get.fluc_Result(), get.diff_Result(), get.sample_Result() };
-				if (count.load(std::memory_order_seq_cst) == th)
-				{
-					cv.notify_one();
+				if(completed.fetch_add(1, std::memory_order_acq_rel) + 1 == th)
+				{   /* Notify the wait() function once processing is complete.*/
+					std::unique_lock<std::mutex> lock(mtx);
+					cv.notify_one(); //Notice
 				}
 			}
 		}
 	public:
-		explicit pool(size_t n = std::thread::hardware_concurrency()) : Result_return(n * 4)  //Allocate space (分配空间)
+		explicit pool(size_t n = std::thread::hardware_concurrency()) 
 		{
-			for (size_t i = 0; i < n; ++i)
+			if (n == 0) { n = 1; }//special case
+			Result_return.reserve(n * 4);  //allocate memory
+			for (size_t i = 0; i < n ; ++i)
 			{
-				work.emplace_back([this] { pool_work();});  //Constructing threads
+				/* pool_work -> thread */
+				work.emplace_back([this] { pool_work();});  
+				//Constructing threads
 			}
 		}
 
-		template <number N>
-		void Export(const std::vector<N>& y, const size_t& Group_size)
+		/* Main exprot*/
+		void Export(const std::vector<T>& y, const size_t& Group_size)
 		{
+			static_assert(std::is_floating_point_v<T> || sizeof(T) >= 4,
+				"Integer types smaller than 32-bit may lose precision in Welford accumulation");
+			/* cheak */
+			if (count.load(std::memory_order_seq_cst) != th.load(std::memory_order_seq_cst)
+				  && th.load(std::memory_order_seq_cst) > 0 )
+			{   /* * Have you finished the task? * */
+				std::unique_lock<std::mutex> lock(mtx);
+				cv.wait(lock, [&] { return completed.load() == th; });
+			}
+			/* Basic examination data */
 			if (y.empty()) { std::cerr << "error : No data\n"; return; }  // y empty
-			if (y.size() < Group_size || Group_size == 0) { std::cerr << "error : Group cannot be greater than the number of data entries \n";return; } // Group > y size
-			th = (y.size() + Group_size - 1) / Group_size;
-			count.store(0, std::memory_order_seq_cst);
-			Result_return.resize(th);
+			if (y.size() < Group_size || Group_size == 0)  
+			// Group > y size    //principle
+			       { std::cerr << "error : Group cannot be greater than the number of data entries \n";return; } 
+			th = (y.size() + Group_size - 1) / Group_size; //How many groups = th
+            /*Initialize*/
+			count.store(0 , std::memory_order_seq_cst);
+			completed.store(0, std::memory_order_relaxed);
+			/* Allocate memory space */
+			Result_return.resize(th); 
+			/* Write */
 			{
 				std::lock_guard<std::mutex> lock(mtx);
-				for (size_t i = 0; i < y.size(); i += Group_size)
+				for (size_t i = 0; i < y.size(); i += Group_size)  //Grouping 
 				{
 					size_t end = std::min(i + Group_size, y.size());
 					run.emplace(
@@ -88,29 +129,34 @@ namespace thread
 						std::make_move_iterator(y.begin() + end));//end
 				}
 			}
-			cv.notify_all();
+			cv.notify_all();//Notice -> pool_work()
 		}
 
+		/* Return interface */
 		std::vector<result> wait()
 		{
 			std::unique_lock<std::mutex> lock(mtx);
-			cv.wait(lock, [&] {return count.load() == th; });
-			return Result_return;
+			/* Has every group been processed */
+			cv.wait(lock, [&] 
+				{return completed.load(std::memory_order_seq_cst) == th; }); 
+			return Result_return; //Interface response result
 		}
 
 		~pool()
-		{
+		{		
+			//Running thread
 			{
 				std::lock_guard<std::mutex> lock(mtx);
-				stop = true;
+				stop.store(true, std::memory_order_seq_cst);
 			}
 			cv.notify_all();
-			for (auto& it : work)
+			for (auto & it : work)
 			{
+				//Run in sequence
 				it.join();
 			}
 		}
-
+		/* No copying allowed */
 		pool(const pool&) = delete;
 		pool& operator=(const pool&) = delete;
 	};

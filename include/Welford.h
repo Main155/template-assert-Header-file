@@ -1,14 +1,20 @@
+/* @Main155 */
 #pragma once
 
 #include <cmath>
-#include <stdexcept>
+#include <exception>
+#include <iostream>
 
 namespace math
 {
-	void check(const long double& data)
+	void check(const long double & data)
 	{
 		if (std::isinf(data) || std::isnan(data))//Check for overflow &&  underflow(检查是否溢出&&溢下)
-	         {  throw std::runtime_error("error : T overflow or T underflow");  }  }
+		{
+			throw std::runtime_error("[Welford.h*] error : Abnormal result .");
+		}
+	}
+
 	struct  data
 	{
 		long long count = 0;    //data(数据)

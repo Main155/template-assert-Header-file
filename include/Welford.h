@@ -37,7 +37,7 @@ namespace math
 			if(get.count == 0)
 			   { return; }  //No data return (无数据返回)
             // set_n = Number of data + Number of processed data (set_n = 处理数据 + 数据数量)
-			long double set_n = count + get.count; 
+			long long set_n = count + get.count; 
             // set_iff = Handling Data Discrepancies - Raw Data Discrepancies (set_iff =  处理数据差异 - 原始数据差异)
 			long double set_diff = get.mean - mean;
 			//(Sum of Average Data Differences + Sum of Processed Data Differences))/Process data samples plus data samples(数据差异之和加上处理数据之和除以处理数据样本加上数据样本)

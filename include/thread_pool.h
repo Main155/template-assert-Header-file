@@ -8,19 +8,38 @@
 #include <thread>
 #include <atomic>
 #include <condition_variable>
-#include "Welford.h"
 #include <concepts>
 #include <type_traits>
 #include <iostream>
 #include <mutex>
+#include <chrono>
 #include <algorithm>
+#include "Welford.h"
 
 template <typename T>
 concept number = std::is_floating_point_v<T> || std::is_integral_v<T>; 
 /*Must be a number(必须为数字)*/
 
 namespace thread
-{	
+{
+	struct jtime
+	{
+	private:
+		std::chrono::high_resolution_clock::time_point start;
+	public:
+		jtime() : start(std::chrono::high_resolution_clock::now()) {} //Start time
+		~jtime()
+		{   //Destructor automatically closes.
+			auto end = std::chrono::high_resolution_clock::now();   //Now
+			/* time taken */
+			auto ms = std::chrono::duration_cast<std::chrono::milliseconds> (end - start);
+			std::cout << "time-consuming : " << ms << '\n';
+		}
+		/* Prevent copying */
+		jtime(const jtime&) = delete;
+		jtime operator = (const jtime&) = delete;
+	};
+
 	template<number T>
 	class pool 
 	{
@@ -64,12 +83,12 @@ namespace thread
 				{/* Capture exception data. -> Welforf.h**  */
 					math::data get;  //Weiford.h 
 					for (size_t it = 0; it < task.size();++it)
-					{
+					{  /* Welforf.h**  -> maht -> update */
 						get.update(task[it]);  //update data
 					}
 					Result_return[slot] =    //Write result （写入结果）
 					{ get.fluc_Result(), get.diff_Result(), get.sample_Result() };
-				}
+				}//thorw error
 				catch (std::runtime_error& e)
 				{  /*Error handling *** */
 					Result_return[slot] = { NAN, NAN, 0 };  //Error logging
@@ -86,7 +105,6 @@ namespace thread
 		explicit pool(size_t n = std::thread::hardware_concurrency()) 
 		{
 			if (n == 0) { n = 1; }//special case
-			Result_return.reserve(n * 4);  //allocate memory
 			for (size_t i = 0; i < n ; ++i)
 			{
 				/* pool_work -> thread */
@@ -98,6 +116,7 @@ namespace thread
 		/* Main exprot*/
 		void Export(const std::vector<T>& y, const size_t& Group_size)
 		{
+			jtime t; //time tracking
 			static_assert(std::is_floating_point_v<T> || sizeof(T) >= 4,
 				"Integer types smaller than 32-bit may lose precision in Welford accumulation");
 			/* cheak */
@@ -127,7 +146,7 @@ namespace thread
 					run.emplace(
 						std::make_move_iterator(y.begin() + i),  //begin
 						std::make_move_iterator(y.begin() + end));//end
-				}
+				} 
 			}
 			cv.notify_all();//Notice -> pool_work()
 		}
